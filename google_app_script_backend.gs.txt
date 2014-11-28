@@ -1,0 +1,69 @@
+function addProduct() {
+  var sheet = SpreadsheetApp.getActiveSheet();  
+    
+  var queries = ["auto", "car", "gas", "tow", "wash", "mechanics", "barsandrestaurants", "bars", "fastfood", "restaurant", "beauty", "beautyclinics", "cosmetics", "beautysalon", "book", "books", "constructionmaterials", "diy", "materials", "paint", "education", "playschool", "education_sub", "fashion", "fashionaccessories", "fashionwomen", "fashionkids", "fashiongeneral", "uniforms", "food", "foodstore", "fishandbutchers", "sweets", "bakery", "health", "ambulance", "healthequipment", "doctors", "pharmacy", "hospital", "lab", "opticians", "home", "homeaccessories", "antiques", "florists", "photo", "gardening", "haberdashery", "homefurniture", "goods", "homeservices", "tobacconists", "hyper", "mall", "jewelry", "jewelry_sub", "leisure", "leisuretime", "billiards", "bowling", "bet", "theatre", "art", "boardgame", "leisureothers", "videorental", "music", "musicbands", "disc", "musicalinstrument", "office", "officeaccessories", "officeequipment", "officesfurniture", "officeservices", "others", "others_sub", "pet", "pets", "services", "warehouse", "architects", "realestate", "cable", "pawnshops", "consulting", "accounting", "contractor", "tempagency", "finance", "fumigate", "funeral", "lawyer", "cleaning", "moving", "otherservices", "designprogramming", "publicity", "repair", "secretary", "telephony", "drycleaner", "shoes", "shoes_sub", "sport", "sportsaccessories", "bikes", "sportclub", "sportcloths", "tech", "tech_sub", "travel", "airline", "travelagency", "hotel", "carrental", "transport"];
+  
+   var lati_array = ["19.43","19.44","19.435","19.395","19.43","19.37","19.43","19.435","19.425","19.445",  "19.435","19.305","19.37","19.385","19.44","19.44","19.485","19.48","19.395","41.748","19.375","19.425","19.365","19.43","19.43","19.43","19.395","19.345","19.385","19.34",  "19.42","19.445","19.405","19.29","19.3","19.29","19.38","19.285","19.35","19.43",  "19.445","19.39","19.41","18.895","19.39","19.435","19.375","19.285","19.35","41.778"];  //"19.385","19.395","19.38","19.38","19.345","19.36","20.675","19.43","19.37","19.435",  "19.425","25.635","19.47","19.545","19.425","19.38","41.778","19.365","20.675","19.365",  "19.37","19.375","19.415","19.435","19.395","19.405","25.645","19.43","19.345","19.505",  "19.49","25.635","19.355","19.595","25.735","19.285","19.42","19.445","19.37","19.35",  "19.435","19.435","19.305","19.33","41.717","19.355","19.295","19.455","19.42","19.44"];
+   var longi_array = ["-99.205","-99.18","-99.135","-99.17","-99.18","-99.17", "-99.27","-99.165","-99.18","-99.15","-99.2","-99.215","-99.19","-99.165","-99.095","-99.21","-99.205","-99.13","-99.12","-99.155","-99.17","-99.18","-99.17","-99.26","-99.135","-99.16","-99.2","-99.175","-99.18","-99.24",	"-99.205","-99.17","-99.15","-99.155","-99.14","-99.115","-99.645","-99.17","-99.135","-99.19",	"-99.19","-99.14","-99.255","-99.17","-99.12","-99.175","-99.165","-99.165","-99.175","-99.145"]; //"-99.2","-99.255","-99.05","-99.155","-99.14","-99.275","-99.29","-103.41","-99.195","-99.18",  "-99.14","-99.165","-100.31","-99.175","-99.14","-99.16","-99.175","-99.195","-99.165","-103.345",  "-99.19","-99.16","-99.265","-99.165","-99.21","-99.165","-99.17","-100.29","-99.21","-99.19",  "-99.155","-99.135","-100.28","-99.1","-99.19","-100.4","-99.14","-99.105","-99.22","-99.125",  "-99.13","-99.2","-99.185","-99.2","-99.215","-99.21","-99.185","-99.105","-99.18","-99.165"];
+
+
+  var headers = {  
+      'Authorization': 'Basic YXBwLmJidmEuc3Jnb3ZpbmRhMTozYTgxNzk4MmViZTBkNDQxNmE0MWUxNmE2ZjNmNzllYTRkZThhNzM0',
+      'Accept' : 'text/xml',
+      'Content-Type': 'text/xml', 
+      'muteHttpExceptions' : true
+  };      
+  var options = {
+    'method': 'get',
+    'headers': headers,    
+  };
+    
+  for(var k=sheet.getLastRow(); k < queries.length; k++) {
+    var merchant_type = queries[k];
+    var i1=0;
+    var i2=0;
+    var i3=0;
+    var num_payments_array={};
+    for (var i = 0; i < lati_array.length; i++) {
+      var lati = lati_array[i];        
+      var longi = longi_array[i];   
+      var url = "https://apis.bbvabancomer.com/datathon/tiles/"+lati+"/"+longi+"/basic_stats?date_min=20140301&date_max=20140331&group_by=month&category=mx_"+merchant_type;
+      try {    
+        var response = UrlFetchApp.fetch(url, options);  
+        var xml = response.getContentText();    
+        var doc = Xml.parse(xml, true);  
+        var code = doc.response.result.getElement("code");
+        if(!(code.Text.localeCompare("200"))) {
+          var num_payments = doc.response.data.stats.item.getElement("num_payments");
+          num_payments_array[i] = parseInt(num_payments.Text);
+        }
+      }  
+      catch(err) {
+        num_payments_array[i] = 0;
+      }      
+   
+      if(num_payments_array[i] > num_payments_array[i1]) 
+        i1=i;     
+      else if(num_payments_array[i] < num_payments_array[i1] && num_payments_array[i] > num_payments_array[i2]) 
+        i2=i;     
+      else if(num_payments_array[i] < num_payments_array[i1] && num_payments_array[i] < num_payments_array[i2] && num_payments_array[i] > num_payments_array[i3] ) 
+        i3=i;     
+    }  
+    var col=0;
+    var nextRow = sheet.getLastRow(); // get next row
+    var cell = sheet.getRange('a1');
+    var type=queries[k];
+    cell.offset(nextRow, col++).setValue(type);  
+    cell.offset(nextRow, col++).setValue(lati_array[i1]);
+    cell.offset(nextRow, col++).setValue(longi_array[i1]);
+    cell.offset(nextRow, col++).setValue(lati_array[i2]);
+    cell.offset(nextRow, col++).setValue(longi_array[i2]);
+    cell.offset(nextRow, col++).setValue(lati_array[i3]);
+    cell.offset(nextRow, col++).setValue(longi_array[i3]);
+    cell.offset(nextRow, col++).setValue(num_payments_array[i1]);
+    cell.offset(nextRow, col++).setValue(num_payments_array[i2]);
+    cell.offset(nextRow, col++).setValue(num_payments_array[i3]);
+  }
+  
+}
+
